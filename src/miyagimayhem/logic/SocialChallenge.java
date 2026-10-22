@@ -1,9 +1,9 @@
-package miyagimayhem;
+package miyagimayhem.logic;
 
 public class SocialChallenge extends ChallengeEvent {
 
-    public SocialChallenge(GameLogger logger, ChallengeNamePool namePool) {
-        super(logger, namePool);
+    public SocialChallenge(Narrator narrator, ChallengeNamePool namePool, FlavorText flavor) {
+        super(narrator, namePool, flavor);
     }
 
     @Override
@@ -13,7 +13,7 @@ public class SocialChallenge extends ChallengeEvent {
 
     @Override
     protected String getFlavorCategory() {
-        return "social";
+        return FlavorText.SOCIAL;
     }
 
     @Override

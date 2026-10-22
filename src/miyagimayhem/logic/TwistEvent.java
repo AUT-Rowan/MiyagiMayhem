@@ -1,7 +1,9 @@
-package miyagimayhem;
+package miyagimayhem.logic;
 
 import java.util.List;
 import java.util.Random;
+import miyagimayhem.model.Contestant;
+import miyagimayhem.model.LineTag;
 
 /**
  * A rare, unpredictable event that shakes up a round. Two variants for now:
@@ -11,41 +13,48 @@ import java.util.Random;
  */
 public class TwistEvent extends Event {
 
+    private static final int MIN_CONTESTANTS_FOR_TWIST = 3;
+
     private final Random rng = new Random();
     private boolean doubleEliminationTriggered = false;
 
-    public TwistEvent(GameLogger logger) {
-        super(logger);
+    public TwistEvent(Narrator narrator) {
+        super(narrator);
     }
 
     @Override
     public void execute(List<Contestant> activeContestants) {
-        logger.header("=== TWIST! ===");
+        narrator.header("=== TWIST! ===");
 
-        if (activeContestants.size() < 3) {
-            logger.log("No twist this round, not enough contestants left for chaos.");
-            logger.blank();
+        if (activeContestants.size() < MIN_CONTESTANTS_FOR_TWIST) {
+            narrator.log("No twist this round, not enough contestants left for chaos.");
+            narrator.blank();
             return;
         }
 
-        boolean stealImmunity = rng.nextBoolean();
-
-        if (stealImmunity) {
-            Contestant immuneContestant = findImmune(activeContestants);
-            if (immuneContestant != null) {
-                Contestant thief = randomOther(activeContestants, immuneContestant);
-                immuneContestant.clearImmunity();
-                thief.grantImmunity();
-                logger.log("IMMUNITY STEAL! " + thief.getName()
-                        + " has stolen immunity from " + immuneContestant.getName() + "!");
-            } else {
-                logger.log("A twist loomed... but nothing happened. Anticlimactic.");
-            }
+        if (rng.nextBoolean()) {
+            stealImmunity(activeContestants);
         } else {
             doubleEliminationTriggered = true;
-            logger.log("DOUBLE ELIMINATION this round! Two contestants will be going home.");
+            narrator.log("DOUBLE ELIMINATION this round! Two contestants will be going home.");
         }
-        logger.blank();
+        narrator.blank();
+    }
+
+    private void stealImmunity(List<Contestant> activeContestants) {
+        Contestant victim = findImmune(activeContestants);
+        if (victim == null) {
+            narrator.log("A twist loomed... but nothing happened. Anticlimactic.");
+            return;
+        }
+        Contestant thief = randomOther(activeContestants, victim);
+        victim.clearImmunity();
+        thief.grantImmunity();
+        narrator.log("IMMUNITY STEAL! " + thief.getName()
+                + " has stolen immunity from " + victim.getName() + "!",
+                LineTag.IMMUNITY_GRANTED, thief.getName());
+        narrator.log(victim.getName() + " is no longer safe from the vote.",
+                LineTag.IMMUNITY_CLEARED, victim.getName());
     }
 
     /**

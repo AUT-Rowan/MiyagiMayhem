@@ -1,9 +1,9 @@
-package miyagimayhem;
+package miyagimayhem.logic;
 
 public class PhysicalChallenge extends ChallengeEvent {
 
-    public PhysicalChallenge(GameLogger logger, ChallengeNamePool namePool) {
-        super(logger, namePool);
+    public PhysicalChallenge(Narrator narrator, ChallengeNamePool namePool, FlavorText flavor) {
+        super(narrator, namePool, flavor);
     }
 
     @Override
@@ -13,7 +13,7 @@ public class PhysicalChallenge extends ChallengeEvent {
 
     @Override
     protected String getFlavorCategory() {
-        return "physical";
+        return FlavorText.PHYSICAL;
     }
 
     @Override
