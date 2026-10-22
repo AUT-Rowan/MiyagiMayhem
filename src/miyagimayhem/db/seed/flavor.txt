@@ -1,0 +1,86 @@
+# Seed data loaded into the FLAVOR_LINE table the first time the database is created.
+# Format: KIND|text   (use %s where a contestant name goes)
+PHYSICAL|Slippery Squid Gauntlet
+PHYSICAL|Bonsai Bootcamp
+PHYSICAL|The Greased Beam of Shame
+PHYSICAL|Mount Fuji Ascent
+PHYSICAL|Sumo Sprint Showdown
+PHYSICAL|Takeshi's Castle
+PHYSICAL|The Rising Sun Challenge
+MENTAL|Tofu or Nofu
+MENTAL|The Bewildering Bento Puzzle
+MENTAL|Riddle of the Ronin
+MENTAL|Panic at the Pandas
+MENTAL|Origami Architects
+MENTAL|Sudoko Sumo
+MENTAL|Sensei Says
+SOCIAL|Whisper Down the Dojo
+SOCIAL|The Great Alliance Auction
+SOCIAL|Silent Library
+SOCIAL|Ninja Chameleons
+SOCIAL|Musical Gongs
+SOCIAL|Lost in Translation
+SOCIAL|Who Tokyo Money?
+LOSER|%s slips immediately. Classic %s.
+LOSER|%s just walked straight through it like it owed them money.
+LOSER|%s gives it a valiant effort and fails spectacularly.
+LOSER|%s trips over absolutely nothing.
+LOSER|%s blames the wind. There is no wind.
+LOSER|%s should have gone to Specsavers.
+LOSER|%s does not know where they are.
+LOSER|%s is just daydreaming.
+LOSER|%s tried their hardest and still failed.
+LOSER|%s makes it look really hard.
+WINNER|%s is somehow sprinting sideways and it's working.
+WINNER|%s digs deep and pulls ahead at the last second.
+WINNER|%s makes it look easy. It was not easy.
+WINNER|%s channels pure chaos and wins.
+WINNER|%s wins without even breaking a sweat.
+WINNER|%s is head and shoulders above the rest.
+WINNER|An absolute masterclass performance from %s!
+WINNER|%s looks like they belong in the olympics, give them the gold.
+WINNER|%s has real determination in their eyes as they win.
+WINNER|%s is looking like a real fan favorite, what a win!
+PAIRED|%s and %s collide head-on and both go down in a heap.
+PAIRED|%s tries to help %s up, and they both end up falling instead.
+PAIRED|%s and %s get into a shoving match and lose track of the actual challenge.
+PAIRED|%s trips %s by accident. Or was it an accident?
+PAIRED|%s and %s somehow tie for last place, deep in conversation the entire time.
+PAIRED|%s and %s both dive for the same spot and neither will budge.
+PAIRED|%s challenges %s to a staring contest instead of finishing the course.
+PAIRED|%s and %s get more invested in their rivalry than the actual challenge.
+GROUP3|%s, %s and %s all pile into each other at the worst possible moment.
+GROUP3|%s, %s and %s form an accidental human blockade in the middle of the course.
+GROUP3|%s, %s and %s spend so long arguing about strategy that the challenge ends without them.
+GROUP3|%s, %s and %s decide teamwork is more important than winning, and lose spectacularly together.
+GROUP3|%s, %s and %s get tangled up in the same rope and refuse to let go.
+GROUP4|%s, %s, %s and %s cause a full pileup that takes several minutes to sort out.
+GROUP4|%s, %s, %s and %s somehow all end up in the exact same spot, and none of them planned it.
+GROUP4|%s, %s, %s and %s get so distracted heckling each other that they forget the challenge is still running.
+GROUP4|%s, %s, %s and %s turn the challenge into an impromptu dance-off instead of finishing it.
+GROUP4|%s, %s, %s and %s spend so long negotiating an alliance that the challenge ends without them.
+TIEBREAKER|The coin lands wrong for %s.
+TIEBREAKER|%s loses the rock-paper-scissors showdown.
+TIEBREAKER|In a stunning turn of fate, %s draws the short straw.
+TIEBREAKER|The tiebreaker duel ends with %s flat on the ground.
+TIEBREAKER|Fate decides. %s is out.
+QUOTE|"I regret nothing. The eel pit regrets ME."
+QUOTE|"Tell my alliance... they know what they did."
+QUOTE|"Honestly? Fair. That was a bad round for me."
+QUOTE|"This is a conspiracy and I will be writing a strongly worded letter."
+QUOTE|"I came, I saw, I got voted out. Iconic."
+QUOTE|"No hard feelings. Actually, some hard feelings."
+QUOTE|"I'd like to thank nobody, because nobody helped me."
+QUOTE|"Miyagi Mayhem hasn't seen the last of me. Actually, it has. But still."
+QUOTE|"I was too powerful for this show. That's the real story here."
+QUOTE|"Whatever, I have a life outside of this show anyway."
+QUOTE|"I saw it coming. I just didn't do anything about it."
+QUOTE|"My strategy was flawless. My execution was not."
+QUOTE|"I'm not crying, you're crying."
+QUOTE|"Someone else's name should be leaving this dojo, but here we are."
+QUOTE|"I gave 100 percent, mathematically that's still not enough sometimes."
+QUOTE|"Betrayed. Blindsided. Bamboozled. Pick one, they all apply."
+QUOTE|"I'm going to go home and think about every choice that led to this."
+QUOTE|"This isn't goodbye, this is see you never, probably."
+QUOTE|"At least I'll be first to the buffet at the wrap party."
+QUOTE|"I called it two rounds ago. Nobody listened. Typical."

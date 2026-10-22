@@ -1,0 +1,4 @@
+# Seed rosters loaded the first time the database is created.
+# Format: Roster name|name1,name2,name3
+The Beatles|Ringo,John,Paul,George
+The Test Group|John,James,Jeff,Keanu,Tony,Paul,Leonardo,Donatello,Raphael,Michaelangelo
