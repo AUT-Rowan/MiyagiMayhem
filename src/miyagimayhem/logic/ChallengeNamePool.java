@@ -1,4 +1,4 @@
-package miyagimayhem;
+package miyagimayhem.logic;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,14 +15,19 @@ import java.util.Random;
  */
 public class ChallengeNamePool {
 
+    private final FlavorText flavor;
     private final Map<String, List<String>> remaining = new HashMap<>();
     private final Random rng = new Random();
+
+    public ChallengeNamePool(FlavorText flavor) {
+        this.flavor = flavor;
+    }
 
     public String draw(String category) {
         List<String> pool = remaining.get(category);
 
         if (pool == null || pool.isEmpty()) {
-            pool = new ArrayList<>(FlavorTextGenerator.getChallengeNames(category));
+            pool = new ArrayList<>(flavor.getChallengeNames(category));
             Collections.shuffle(pool, rng);
             remaining.put(category, pool);
         }

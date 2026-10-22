@@ -1,9 +1,9 @@
-package miyagimayhem;
+package miyagimayhem.logic;
 
 public class MentalChallenge extends ChallengeEvent {
 
-    public MentalChallenge(GameLogger logger, ChallengeNamePool namePool) {
-        super(logger, namePool);
+    public MentalChallenge(Narrator narrator, ChallengeNamePool namePool, FlavorText flavor) {
+        super(narrator, namePool, flavor);
     }
 
     @Override
@@ -13,7 +13,7 @@ public class MentalChallenge extends ChallengeEvent {
 
     @Override
     protected String getFlavorCategory() {
-        return "mental";
+        return FlavorText.MENTAL;
     }
 
     @Override
