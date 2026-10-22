@@ -12,6 +12,7 @@ public final class RosterValidator {
     public static final int MIN_CONTESTANTS = 3;
     public static final int MAX_CONTESTANTS = 10;
     public static final int MAX_NAME_LENGTH = 20;
+    public static final int MAX_ROSTER_NAME_LENGTH = 30;
 
     private RosterValidator() {
     }
@@ -53,6 +54,21 @@ public final class RosterValidator {
             if (other.equalsIgnoreCase(name)) {
                 return "'" + name + "' is already in, please use a different name.";
             }
+        }
+        return null;
+    }
+
+    /** Checks the name a roster is saved under. Returns an error message or null. */
+    public static String validateRosterName(String raw) {
+        String name = normalize(raw);
+        if (name.isEmpty()) {
+            return "Please give the roster a name.";
+        }
+        if (name.length() > MAX_ROSTER_NAME_LENGTH) {
+            return "Roster names can be " + MAX_ROSTER_NAME_LENGTH + " characters at most.";
+        }
+        if (name.contains("|")) {
+            return "Roster names can't contain the | character.";
         }
         return null;
     }
