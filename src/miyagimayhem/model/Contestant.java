@@ -1,4 +1,4 @@
-package miyagimayhem;
+package miyagimayhem.model;
 
 import java.util.Random;
 
@@ -8,26 +8,39 @@ import java.util.Random;
  */
 public class Contestant {
 
+    public static final int MIN_STAT = 1;
+    public static final int MAX_STAT = 10;
+
+    private static final Random RNG = new Random();
+
     private final String name;
-    private int strength;
-    private int intelligence;
-    private int social;
-    private int luck;
+    private final int strength;
+    private final int intelligence;
+    private final int social;
+    private final int luck;
     private boolean eliminated;
     private boolean hasImmunity;
     private String allyName; // name of allied contestant, null if none
 
-    private static final Random RNG = new Random();
-
+    /** Creates a contestant with random stats between MIN_STAT and MAX_STAT. */
     public Contestant(String name) {
+        this(name, randomStat(), randomStat(), randomStat(), randomStat());
+    }
+
+    /** Creates a contestant with fixed stats (used by tests and replays). */
+    public Contestant(String name, int strength, int intelligence, int social, int luck) {
         this.name = name;
-        this.strength = 1 + RNG.nextInt(10);
-        this.intelligence = 1 + RNG.nextInt(10);
-        this.social = 1 + RNG.nextInt(10);
-        this.luck = 1 + RNG.nextInt(10);
+        this.strength = strength;
+        this.intelligence = intelligence;
+        this.social = social;
+        this.luck = luck;
         this.eliminated = false;
         this.hasImmunity = false;
         this.allyName = null;
+    }
+
+    private static int randomStat() {
+        return MIN_STAT + RNG.nextInt(MAX_STAT - MIN_STAT + 1);
     }
 
     // --- Getters (encapsulation: stats are read-only from outside) ---
