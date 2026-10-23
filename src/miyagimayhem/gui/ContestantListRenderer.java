@@ -2,7 +2,8 @@ package miyagimayhem.gui;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.Map;
+import miyagimayhem.controller.ContestantStatus;
+import miyagimayhem.controller.GamePlayback;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
@@ -11,18 +12,23 @@ import javax.swing.JList;
  */
 class ContestantListRenderer extends DefaultListCellRenderer {
 
-    private final Map<String, ContestantStatus> statuses;
+    private final GamePlayback playback;
+    private final ContestantColors colours;
 
-    ContestantListRenderer(Map<String, ContestantStatus> statuses) {
-        this.statuses = statuses;
+    ContestantListRenderer(GamePlayback playback, ContestantColors colours) {
+        this.playback = playback;
+        this.colours = colours;
     }
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index,
             boolean selected, boolean focused) {
         super.getListCellRendererComponent(list, value, index, false, false);
-        ContestantStatus status = statuses.getOrDefault(String.valueOf(value), ContestantStatus.ACTIVE);
-        setText(value + "  -  " + status.getLabel());
+        String name = String.valueOf(value);
+        ContestantStatus status = playback.getStatus(name);
+        setText(name + "  -  " + status.getLabel());
+        setIcon(new ColourDot(colours.get(name)));
+        setIconTextGap(8);
         setForeground(colourFor(status));
         setFont(status == ContestantStatus.WINNER ? UiTheme.BOLD : UiTheme.BODY);
         setBackground(UiTheme.PANEL);
@@ -37,7 +43,7 @@ class ContestantListRenderer extends DefaultListCellRenderer {
             case OUT:
                 return UiTheme.MUTED;
             case WINNER:
-                return UiTheme.ACCENT;
+                return UiTheme.GOLD;
             default:
                 return UiTheme.TEXT;
         }

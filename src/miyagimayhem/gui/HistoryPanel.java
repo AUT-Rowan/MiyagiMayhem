@@ -3,8 +3,8 @@ package miyagimayhem.gui;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -18,6 +18,7 @@ import miyagimayhem.controller.GameController;
 import miyagimayhem.db.DataAccessException;
 import miyagimayhem.model.GameResult;
 import miyagimayhem.model.NarratedLine;
+import miyagimayhem.model.PlayerStats;
 
 /**
  * Past games with their transcripts, plus a leaderboard of who has won most.
@@ -28,7 +29,7 @@ class HistoryPanel extends JPanel {
     private final Navigator navigator;
 
     private final DefaultTableModel gamesModel = readOnlyModel("Played", "Winner", "Players", "Rounds");
-    private final DefaultTableModel leaderboardModel = readOnlyModel("Rank", "Contestant", "Wins");
+    private final DefaultTableModel leaderboardModel = readOnlyModel("Rank", "Contestant", "Wins", "Played", "Win rate");
     private final JTable gamesTable = new JTable(gamesModel);
     private final TranscriptView transcript = new TranscriptView();
     private List<GameResult> games;
@@ -53,10 +54,16 @@ class HistoryPanel extends JPanel {
         bottom.setOpaque(false);
         JButton back = new StyledButton("Back", false);
         back.addActionListener(e -> navigator.showMenu());
+        JButton deleteGame = new StyledButton("Delete selected game", false);
+        deleteGame.addActionListener(e -> deleteSelectedGame());
         JButton clear = new StyledButton("Clear history", false);
         clear.addActionListener(e -> clearHistory());
+        JPanel deleteButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        deleteButtons.setOpaque(false);
+        deleteButtons.add(deleteGame);
+        deleteButtons.add(clear);
         bottom.add(back, BorderLayout.WEST);
-        bottom.add(clear, BorderLayout.EAST);
+        bottom.add(deleteButtons, BorderLayout.EAST);
         add(bottom, BorderLayout.SOUTH);
     }
 
@@ -72,8 +79,9 @@ class HistoryPanel extends JPanel {
             }
             leaderboardModel.setRowCount(0);
             int rank = 1;
-            for (Map.Entry<String, Integer> entry : controller.getLeaderboard().entrySet()) {
-                leaderboardModel.addRow(new Object[] {rank++, entry.getKey(), entry.getValue()});
+            for (PlayerStats stats : controller.getLeaderboard()) {
+                leaderboardModel.addRow(new Object[] {rank++, stats.getName(), stats.getWins(),
+                    stats.getGamesPlayed(), stats.getWinPercent() + "%"});
             }
             transcript.clear();
             if (!games.isEmpty()) {
@@ -111,11 +119,33 @@ class HistoryPanel extends JPanel {
             return;
         }
         try {
-            for (NarratedLine line : controller.getTranscript(games.get(row).getId())) {
+            GameResult game = games.get(row);
+            transcript.setColours(new ContestantColors(Arrays.asList(game.getContestants().split(","))));
+            for (NarratedLine line : controller.getTranscript(game.getId())) {
                 transcript.append(line);
             }
         } catch (DataAccessException e) {
             UiTheme.showDatabaseError(this, e);
+        }
+    }
+
+    private void deleteSelectedGame() {
+        int row = gamesTable.getSelectedRow();
+        if (row < 0 || games == null || row >= games.size()) {
+            JOptionPane.showMessageDialog(this, "Pick a game in the list first.", "Delete game",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        int answer = JOptionPane.showConfirmDialog(this,
+                "Delete this game? It will also be removed from the leaderboard.",
+                "Delete game", JOptionPane.YES_NO_OPTION);
+        if (answer == JOptionPane.YES_OPTION) {
+            try {
+                controller.deleteGame(games.get(row).getId());
+                refresh();
+            } catch (DataAccessException e) {
+                UiTheme.showDatabaseError(this, e);
+            }
         }
     }
 
