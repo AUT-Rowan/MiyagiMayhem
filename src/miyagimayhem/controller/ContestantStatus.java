@@ -1,9 +1,9 @@
-package miyagimayhem.gui;
+package miyagimayhem.controller;
 
 /**
- * What the sidebar shows next to each contestant's name.
+ * Where a contestant stands while a game is being shown, as the sidebar displays it.
  */
-enum ContestantStatus {
+public enum ContestantStatus {
     ACTIVE("In the game"),
     IMMUNE("Immune"),
     OUT("Voted out"),
@@ -15,7 +15,7 @@ enum ContestantStatus {
         this.label = label;
     }
 
-    String getLabel() {
+    public String getLabel() {
         return label;
     }
 }

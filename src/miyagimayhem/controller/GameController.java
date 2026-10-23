@@ -1,6 +1,8 @@
 package miyagimayhem.controller;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import miyagimayhem.db.DatabaseManager;
@@ -17,6 +19,7 @@ import miyagimayhem.model.FlavorLine;
 import miyagimayhem.model.GameResult;
 import miyagimayhem.model.GameSession;
 import miyagimayhem.model.NarratedLine;
+import miyagimayhem.model.PlayerStats;
 
 /**
  * The only class the GUI talks to. It joins the game logic to the database
@@ -106,8 +109,32 @@ public class GameController {
         return gameDao.findTranscript(gameId);
     }
 
-    public Map<String, Integer> getLeaderboard() {
-        return gameDao.findWinCounts();
+    /**
+     * Everyone who has played a saved game with their wins and games played.
+     * Wins come from the database, games played are counted from each game's
+     * contestant list. Best record first.
+     */
+    public List<PlayerStats> getLeaderboard() {
+        Map<String, Integer> played = new HashMap<>();
+        for (GameResult game : gameDao.findAll()) {
+            for (String name : game.getContestants().split(",")) {
+                played.merge(name.trim(), 1, Integer::sum);
+            }
+        }
+        Map<String, Integer> wins = gameDao.findWinCounts();
+
+        List<PlayerStats> leaderboard = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : played.entrySet()) {
+            leaderboard.add(new PlayerStats(entry.getKey(), entry.getValue(), wins.getOrDefault(entry.getKey(), 0)));
+        }
+        leaderboard.sort(Comparator.comparingInt(PlayerStats::getWins).reversed()
+                .thenComparing(Comparator.comparingInt(PlayerStats::getWinPercent).reversed())
+                .thenComparing(PlayerStats::getName));
+        return leaderboard;
+    }
+
+    public void deleteGame(int gameId) {
+        gameDao.delete(gameId);
     }
 
     public void clearHistory() {
