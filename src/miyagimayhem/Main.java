@@ -2,6 +2,7 @@ package miyagimayhem;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import miyagimayhem.audio.AudioManager;
 import miyagimayhem.controller.GameController;
 import miyagimayhem.db.DataAccessException;
 import miyagimayhem.gui.MainFrame;
@@ -20,7 +21,7 @@ public class Main {
         try {
             MainFrame.installLookAndFeel();
             GameController controller = GameController.createDefault();
-            new MainFrame(controller).setVisible(true);
+            new MainFrame(controller, new AudioManager()).setVisible(true);
         } catch (DataAccessException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Miyagi Mayhem can't start",
                     JOptionPane.ERROR_MESSAGE);
