@@ -40,7 +40,7 @@ class GamePanel extends JPanel {
     private final DefaultListModel<String> sidebarModel = new DefaultListModel<>();
     private final JList<String> sidebar = new JList<>(sidebarModel);
     private final JLabel statusLabel = UiTheme.label(" ");
-    private final JButton nextButton = new StyledButton("Next", true);
+    private final StyledButton nextButton = new StyledButton("Next", true);
     private final JButton autoButton = new StyledButton("Auto-play", false);
     private final JButton skipButton = new StyledButton("Skip to end", false);
     private final JButton againButton = new StyledButton("Play again", true);
@@ -122,6 +122,7 @@ class GamePanel extends JPanel {
         JButton menuButton = new StyledButton("Menu", false);
         menuButton.addActionListener(e -> backToMenu());
 
+        nextButton.setSilent(true);
         nextButton.addActionListener(e -> revealNext());
         autoButton.addActionListener(e -> toggleAutoPlay());
         skipButton.addActionListener(e -> skipToEnd());

@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import miyagimayhem.audio.AudioManager;
 import miyagimayhem.controller.GameController;
 
 /**
@@ -24,6 +25,7 @@ public class MainFrame extends JFrame implements Navigator {
     private static final String FLAVOR = "flavor";
 
     private final GameController controller;
+    private final AudioManager audio;
     private final CardLayout cards = new CardLayout();
     private final JPanel deck = new JPanel(cards);
 
@@ -42,21 +44,23 @@ public class MainFrame extends JFrame implements Navigator {
         UiTheme.installDefaultFonts();
     }
 
-    public MainFrame(GameController controller) {
+    public MainFrame(GameController controller, AudioManager audio) {
         super("Miyagi Mayhem");
         this.controller = controller;
+        this.audio = audio;
 
         setupPanel = new SetupPanel(controller, this);
         gamePanel = new GamePanel(controller, this);
         historyPanel = new HistoryPanel(controller, this);
         flavorPanel = new FlavorPanel(controller, this);
 
-        deck.add(new MenuPanel(this, this::quit), MENU);
+        deck.add(new MenuPanel(this, audio, this::quit), MENU);
         deck.add(setupPanel, SETUP);
         deck.add(gamePanel, GAME);
         deck.add(historyPanel, HISTORY);
         deck.add(flavorPanel, FLAVOR);
         add(deck);
+        ButtonSounds.install(deck, audio);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -68,38 +72,45 @@ public class MainFrame extends JFrame implements Navigator {
         setMinimumSize(new Dimension(900, 640));
         setSize(1000, 700);
         setLocationRelativeTo(null);
+        audio.startMusic();
     }
 
     @Override
     public void showMenu() {
         cards.show(deck, MENU);
+        audio.startMusic();
     }
 
     @Override
     public void showSetup() {
+        audio.stopMusic();
         setupPanel.refresh();
         cards.show(deck, SETUP);
     }
 
     @Override
     public void showGame(List<String> contestantNames) {
+        audio.stopMusic();
         cards.show(deck, GAME);
         gamePanel.startGame(contestantNames);
     }
 
     @Override
     public void showHistory() {
+        audio.stopMusic();
         historyPanel.refresh();
         cards.show(deck, HISTORY);
     }
 
     @Override
     public void showFlavor() {
+        audio.stopMusic();
         flavorPanel.refresh();
         cards.show(deck, FLAVOR);
     }
 
     private void quit() {
+        audio.close();
         controller.shutdown();
         dispose();
         System.exit(0);

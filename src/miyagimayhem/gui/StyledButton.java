@@ -15,6 +15,7 @@ import javax.swing.JButton;
 class StyledButton extends JButton {
 
     private final boolean primary;
+    private boolean silent;
 
     StyledButton(String text, boolean primary) {
         super(text);
@@ -26,6 +27,15 @@ class StyledButton extends JButton {
         setOpaque(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         setForeground(primary ? UiTheme.ACCENT_TEXT : UiTheme.TEXT);
+    }
+
+    /** A silent button doesn't play the click sound when pressed. */
+    void setSilent(boolean silent) {
+        this.silent = silent;
+    }
+
+    boolean isSilent() {
+        return silent;
     }
 
     @Override
