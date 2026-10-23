@@ -1,65 +1,24 @@
 package miyagimayhem.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 /**
- * Main menu: the starting point of the application. A bonsai picture
- * (bonsai.png, stored next to this class) sits in the background.
+ * Main menu: the starting point of the application.
  */
 class MenuPanel extends JPanel {
-
-    private static final String BACKGROUND_FILE = "bonsai.png";
-
-    private final BufferedImage background = loadBackground();
 
     MenuPanel(Navigator navigator, Runnable onQuit) {
         setLayout(new BorderLayout());
         setBackground(UiTheme.BACKGROUND);
 
         add(buildMenu(navigator, onQuit), BorderLayout.CENTER);
-    }
-
-    /** The background picture, or null if the file couldn't be read (the menu still works). */
-    private static BufferedImage loadBackground() {
-        try (InputStream in = MenuPanel.class.getResourceAsStream(BACKGROUND_FILE)) {
-            return in == null ? null : ImageIO.read(in);
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (background == null) {
-            return;
-        }
-        // Scale the picture to fit the space to the right of the buttons, keeping its shape.
-        double scale = Math.min(getHeight() * 0.8 / background.getHeight(),
-                getWidth() * 0.30 / background.getWidth());
-        int width = (int) (background.getWidth() * scale);
-        int height = (int) (background.getHeight() * scale);
-
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2.drawImage(background, (int) (getWidth() * 0.86 - width / 2.0), getHeight() - height - 24,
-                width, height, null);
-        g2.dispose();
     }
 
     private JPanel buildMenu(Navigator navigator, Runnable onQuit) {
