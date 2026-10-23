@@ -23,7 +23,7 @@ class MenuPanel extends JPanel {
         c.insets = new Insets(4, 0, 4, 0);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel title = new JLabel("MIYAGI MAYHEM", SwingConstants.CENTER);
+        JLabel title = new JLabel("- MIYAGI MAYHEM -", SwingConstants.CENTER);
         title.setFont(UiTheme.HEADING.deriveFont(44f));
         title.setForeground(UiTheme.ACCENT);
         add(title, c);

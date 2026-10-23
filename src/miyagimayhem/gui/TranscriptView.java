@@ -2,7 +2,7 @@ package miyagimayhem.gui;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -23,10 +23,7 @@ import miyagimayhem.model.NarratedLine;
  */
 class TranscriptView extends JScrollPane {
 
-    private static final Color BLACK_NAME_HIGHLIGHT = new Color(0xD9DDE6);
-
     private final JTextPane pane = new JTextPane();
-    private ContestantColors colours = new ContestantColors(Collections.<String>emptyList());
     private Pattern namePattern;
 
     TranscriptView() {
@@ -39,10 +36,9 @@ class TranscriptView extends JScrollPane {
         getVerticalScrollBar().setUnitIncrement(16);
     }
 
-    /** Sets which names get their own colour (call before appending lines). */
-    void setColours(ContestantColors newColours) {
-        colours = newColours;
-        namePattern = buildNamePattern(newColours);
+    /** Sets which names are shown in bold (call before appending lines). */
+    void setNames(Collection<String> names) {
+        namePattern = buildNamePattern(names);
     }
 
     void clear() {
@@ -59,7 +55,7 @@ class TranscriptView extends JScrollPane {
                 Matcher matcher = namePattern.matcher(text);
                 while (matcher.find()) {
                     document.insertString(document.getLength(), text.substring(written, matcher.start()), lineAttributes);
-                    document.insertString(document.getLength(), matcher.group(), nameAttributes(lineAttributes, matcher.group()));
+                    document.insertString(document.getLength(), matcher.group(), boldVersionOf(lineAttributes));
                     written = matcher.end();
                 }
             }
@@ -71,11 +67,11 @@ class TranscriptView extends JScrollPane {
     }
 
     /** Matches any contestant name as a whole word, longest names first. */
-    private static Pattern buildNamePattern(ContestantColors colours) {
-        if (colours.names().isEmpty()) {
+    private static Pattern buildNamePattern(Collection<String> contestantNames) {
+        if (contestantNames.isEmpty()) {
             return null;
         }
-        List<String> names = new ArrayList<>(colours.names());
+        List<String> names = new ArrayList<>(contestantNames);
         names.sort(Comparator.comparingInt(String::length).reversed());
         StringBuilder regex = new StringBuilder("(?<![\\p{L}\\p{N}])(?:");
         for (int i = 0; i < names.size(); i++) {
@@ -88,14 +84,9 @@ class TranscriptView extends JScrollPane {
         return Pattern.compile(regex.toString());
     }
 
-    private SimpleAttributeSet nameAttributes(SimpleAttributeSet base, String name) {
+    private static SimpleAttributeSet boldVersionOf(SimpleAttributeSet base) {
         SimpleAttributeSet attributes = new SimpleAttributeSet(base);
-        Color colour = colours.get(name);
-        StyleConstants.setForeground(attributes, colour);
         StyleConstants.setBold(attributes, true);
-        if (ContestantColors.needsHighlight(colour)) {
-            StyleConstants.setBackground(attributes, BLACK_NAME_HIGHLIGHT);
-        }
         return attributes;
     }
 

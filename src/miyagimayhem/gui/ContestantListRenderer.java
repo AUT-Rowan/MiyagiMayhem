@@ -13,11 +13,9 @@ import javax.swing.JList;
 class ContestantListRenderer extends DefaultListCellRenderer {
 
     private final GamePlayback playback;
-    private final ContestantColors colours;
 
-    ContestantListRenderer(GamePlayback playback, ContestantColors colours) {
+    ContestantListRenderer(GamePlayback playback) {
         this.playback = playback;
-        this.colours = colours;
     }
 
     @Override
@@ -27,8 +25,6 @@ class ContestantListRenderer extends DefaultListCellRenderer {
         String name = String.valueOf(value);
         ContestantStatus status = playback.getStatus(name);
         setText(name + "  -  " + status.getLabel());
-        setIcon(new ColourDot(colours.get(name)));
-        setIconTextGap(8);
         setForeground(colourFor(status));
         setFont(status == ContestantStatus.WINNER ? UiTheme.BOLD : UiTheme.BODY);
         setBackground(UiTheme.PANEL);

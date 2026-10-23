@@ -83,10 +83,9 @@ class GamePanel extends JPanel {
         playback = new GamePlayback(session);
         saved = false;
 
-        ContestantColors colours = new ContestantColors(playback.getContestantNames());
-        transcript.setColours(colours);
+        transcript.setNames(playback.getContestantNames());
         transcript.clear();
-        sidebar.setCellRenderer(new ContestantListRenderer(playback, colours));
+        sidebar.setCellRenderer(new ContestantListRenderer(playback));
         sidebarModel.clear();
         for (String name : playback.getContestantNames()) {
             sidebarModel.addElement(name);

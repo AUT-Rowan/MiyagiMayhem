@@ -120,7 +120,7 @@ class HistoryPanel extends JPanel {
         }
         try {
             GameResult game = games.get(row);
-            transcript.setColours(new ContestantColors(Arrays.asList(game.getContestants().split(","))));
+            transcript.setNames(Arrays.asList(game.getContestants().split(",")));
             for (NarratedLine line : controller.getTranscript(game.getId())) {
                 transcript.append(line);
             }
