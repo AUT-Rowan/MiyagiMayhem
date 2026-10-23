@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -97,6 +98,8 @@ class GamePanel extends JPanel {
     private JPanel buildTop() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
+        // Leave room on the right for the sound buttons that float over every screen.
+        top.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 110));
         top.add(UiTheme.heading("The Show"), BorderLayout.WEST);
         statusLabel.setForeground(UiTheme.MUTED);
         top.add(statusLabel, BorderLayout.EAST);

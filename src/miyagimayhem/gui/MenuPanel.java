@@ -1,8 +1,6 @@
 package miyagimayhem.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -11,27 +9,19 @@ import java.awt.Insets;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import javax.swing.SwingConstants;
-import miyagimayhem.audio.AudioManager;
 
 /**
  * Main menu: the starting point of the application. It has a bonsai tree
- * in the background and the sound settings along the bottom.
+ * in the background.
  */
 class MenuPanel extends JPanel {
 
-    private final AudioManager audio;
-    private final JButton musicButton = new StyledButton("", false);
-    private final JButton effectsButton = new StyledButton("", false);
-
-    MenuPanel(Navigator navigator, AudioManager audio, Runnable onQuit) {
-        this.audio = audio;
+    MenuPanel(Navigator navigator, Runnable onQuit) {
         setLayout(new BorderLayout());
         setBackground(UiTheme.BACKGROUND);
 
         add(buildMenu(navigator, onQuit), BorderLayout.CENTER);
-        add(buildSoundControls(), BorderLayout.SOUTH);
     }
 
     @Override
@@ -79,46 +69,5 @@ class MenuPanel extends JPanel {
         JButton button = new StyledButton(text, primary);
         button.addActionListener(e -> action.run());
         menu.add(button, c);
-    }
-
-    private JPanel buildSoundControls() {
-        JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        controls.setOpaque(false);
-        controls.setBorder(UiTheme.padding(16));
-
-        musicButton.addActionListener(e -> {
-            audio.setMusicEnabled(!audio.isMusicEnabled());
-            updateLabels();
-        });
-        effectsButton.addActionListener(e -> {
-            audio.setEffectsEnabled(!audio.isEffectsEnabled());
-            updateLabels();
-        });
-
-        JSlider volume = new JSlider(0, 100, audio.getMusicVolume());
-        volume.setOpaque(false);
-        volume.setPreferredSize(new Dimension(120, 30));
-        volume.setToolTipText("Music volume");
-        volume.addChangeListener(e -> audio.setMusicVolume(volume.getValue()));
-
-        controls.add(musicButton);
-        controls.add(UiTheme.label("Volume"));
-        controls.add(volume);
-        controls.add(effectsButton);
-
-        boolean available = audio.isAvailable();
-        musicButton.setEnabled(available);
-        effectsButton.setEnabled(available);
-        volume.setEnabled(available);
-        if (!available) {
-            controls.add(UiTheme.label("No audio device found"));
-        }
-        updateLabels();
-        return controls;
-    }
-
-    private void updateLabels() {
-        musicButton.setText("Music: " + (audio.isMusicEnabled() ? "On" : "Off"));
-        effectsButton.setText("Sound effects: " + (audio.isEffectsEnabled() ? "On" : "Off"));
     }
 }
