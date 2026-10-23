@@ -29,7 +29,7 @@ class MenuPanel extends JPanel {
         add(title, c);
 
         c.gridy++;
-        JLabel subtitle = new JLabel("A reality show elimination simulator", SwingConstants.CENTER);
+        JLabel subtitle = new JLabel("A reality show simulator", SwingConstants.CENTER);
         subtitle.setFont(UiTheme.BODY);
         subtitle.setForeground(UiTheme.MUTED);
         c.insets = new Insets(0, 0, 30, 0);

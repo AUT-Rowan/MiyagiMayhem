@@ -7,6 +7,8 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import miyagimayhem.controller.GameController;
 
 /**
@@ -29,6 +31,16 @@ public class MainFrame extends JFrame implements Navigator {
     private final GamePanel gamePanel;
     private final HistoryPanel historyPanel;
     private final FlavorPanel flavorPanel;
+
+    /** Sets the look and feel and fonts. Call before creating the window. */
+    public static void installLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+        } catch (ReflectiveOperationException | UnsupportedLookAndFeelException e) {
+            // The default look and feel still works, just without the Metal styling.
+        }
+        UiTheme.installDefaultFonts();
+    }
 
     public MainFrame(GameController controller) {
         super("Miyagi Mayhem");
