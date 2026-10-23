@@ -38,8 +38,8 @@ class MenuPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         // Keep the tree to the right of the buttons so it doesn't hide behind them.
-        int size = (int) Math.min(getHeight() * 0.8, getWidth() * 0.36);
-        BonsaiPainter.paint((Graphics2D) g, (int) (getWidth() * 0.82 - size / 2.0),
+        int size = (int) Math.min(getHeight() * 0.8, getWidth() * 0.34);
+        BonsaiPainter.paint((Graphics2D) g, (int) (getWidth() * 0.835 - size / 2.0),
                 getHeight() - size - 24, size);
     }
 

@@ -1,29 +1,22 @@
 package miyagimayhem.gui;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
 
 /**
- * Draws a faint bonsai tree with a deep red sun behind it. It is drawn with
- * shapes so there is no image file to ship, and it scales with the window.
+ * Draws a dark bonsai silhouette in front of a deep red sun. It is drawn
+ * with shapes so there is no image file to ship, and it scales with the
+ * window.
  */
 final class BonsaiPainter {
 
     private static final Color SUN = new Color(0xCF, 0x2A, 0x2A, 55);
-    private static final Color TRUNK = new Color(0x5A, 0x43, 0x3A, 230);
-    private static final Color POT = new Color(0x3B, 0x44, 0x5E, 255);
-    private static final Color LEAVES = new Color(0x3E, 0x6B, 0x4F, 215);
-    private static final Color LEAVES_LIGHT = new Color(0x4F, 0x82, 0x60, 215);
-
-    /** Centres of the leaf clusters in a 100 x 100 drawing space. */
-    private static final double[][] CLUSTERS = {
-        {49, 30, 1.15}, {27, 56, 0.95}, {75, 47, 1.0}, {22, 38, 0.6}, {80, 64, 0.65}
-    };
+    private static final Color TREE = new Color(0x08, 0x0A, 0x10);
 
     private BonsaiPainter() {
     }
@@ -41,74 +34,87 @@ final class BonsaiPainter {
         g2.setColor(SUN);
         g2.fill(new Ellipse2D.Double(14, 2, 72, 72));
 
-        drawTrunkAndBranches(g2);
+        g2.setColor(TREE);
+        drawTrunk(g2);
+        drawBranches(g2);
         drawFoliage(g2);
         drawPot(g2);
         g2.dispose();
     }
 
-    private static void drawTrunkAndBranches(Graphics2D g2) {
-        g2.setColor(TRUNK);
+    /** A trunk that is thick at the bottom and thins towards the top. */
+    private static void drawTrunk(Graphics2D g2) {
+        CubicCurve2D lower = new CubicCurve2D.Double(50, 86, 40, 76, 62, 68, 48, 54);
+        CubicCurve2D upper = new CubicCurve2D.Double(48, 54, 44, 48, 56, 44, 50, 36);
+        stampAlong(g2, lower, 5.5, 3.6);
+        stampAlong(g2, upper, 3.6, 2.2);
 
-        Path2D trunk = new Path2D.Double();
-        trunk.moveTo(50, 88);
-        trunk.curveTo(38, 78, 62, 68, 47, 52);
-        trunk.curveTo(44, 46, 50, 40, 49, 32);
-        g2.setStroke(new BasicStroke(5.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        g2.draw(trunk);
+        // Roots spreading over the soil.
+        Path2D roots = new Path2D.Double();
+        roots.moveTo(34, 88);
+        roots.curveTo(42, 87, 46, 82, 47, 76);
+        roots.lineTo(55, 76);
+        roots.curveTo(56, 82, 60, 87, 68, 88);
+        roots.closePath();
+        g2.fill(roots);
+    }
 
-        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        Path2D left = new Path2D.Double();
-        left.moveTo(52, 70);
-        left.curveTo(42, 68, 34, 64, 28, 57);
-        g2.draw(left);
-
-        Path2D right = new Path2D.Double();
-        right.moveTo(48, 58);
-        right.curveTo(58, 58, 68, 55, 75, 48);
-        g2.draw(right);
-
-        g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        Path2D lowRight = new Path2D.Double();
-        lowRight.moveTo(56, 74);
-        lowRight.curveTo(66, 74, 74, 70, 80, 64);
-        g2.draw(lowRight);
-
-        Path2D upLeft = new Path2D.Double();
-        upLeft.moveTo(47, 46);
-        upLeft.curveTo(38, 44, 28, 42, 22, 38);
-        g2.draw(upLeft);
+    private static void drawBranches(Graphics2D g2) {
+        stampAlong(g2, new CubicCurve2D.Double(49, 66, 42, 66, 36, 62, 30, 56), 2.6, 1.4);
+        stampAlong(g2, new CubicCurve2D.Double(51, 58, 60, 58, 68, 56, 74, 51), 2.6, 1.4);
+        stampAlong(g2, new CubicCurve2D.Double(51, 44, 58, 42, 64, 38, 70, 33), 2.2, 1.2);
+        stampAlong(g2, new CubicCurve2D.Double(50, 38, 46, 34, 42, 30, 40, 26), 2.2, 1.2);
     }
 
     private static void drawFoliage(Graphics2D g2) {
-        for (double[] cluster : CLUSTERS) {
-            double cx = cluster[0];
-            double cy = cluster[1];
-            double scale = cluster[2];
-            // Several overlapping ovals make a soft, pad-shaped cloud of leaves.
-            g2.setColor(LEAVES);
-            g2.fill(oval(cx, cy + 1.5 * scale, 15 * scale, 6.5 * scale));
-            g2.setColor(LEAVES_LIGHT);
-            g2.fill(oval(cx - 6 * scale, cy - 1, 9 * scale, 5.5 * scale));
-            g2.fill(oval(cx + 6 * scale, cy - 1.5 * scale, 9 * scale, 5.5 * scale));
-            g2.setColor(LEAVES);
-            g2.fill(oval(cx, cy - 3.5 * scale, 10 * scale, 5 * scale));
+        cloud(g2, 40, 23, 40, 20);
+        cloud(g2, 71, 29, 22, 12);
+        cloud(g2, 25, 53, 28, 14);
+        cloud(g2, 75, 50, 30, 14);
+    }
+
+    /**
+     * A rounded cloud of leaves: a row of overlapping bumps on top of a flat
+     * oval. All parts use the same solid colour so they merge into one shape.
+     */
+    private static void cloud(Graphics2D g2, double centreX, double centreY, double width, double height) {
+        g2.fill(new Ellipse2D.Double(centreX - width / 2, centreY - height * 0.05, width, height * 0.55));
+        int bumps = 5;
+        for (int i = 0; i < bumps; i++) {
+            double along = (double) i / (bumps - 1);
+            double radius = height * (0.34 + 0.1 * Math.sin(i * 1.9 + centreX));
+            double bx = centreX - width * 0.34 + along * width * 0.68;
+            double by = centreY - height * 0.12 - height * 0.2 * Math.sin(Math.PI * along);
+            g2.fill(new Ellipse2D.Double(bx - radius, by - radius, radius * 2, radius * 2));
         }
     }
 
-    private static Ellipse2D oval(double centreX, double centreY, double radiusX, double radiusY) {
-        return new Ellipse2D.Double(centreX - radiusX, centreY - radiusY, radiusX * 2, radiusY * 2);
-    }
-
     private static void drawPot(Graphics2D g2) {
-        g2.setColor(POT);
+        g2.fill(new Ellipse2D.Double(32, 83, 36, 7));
+        g2.fill(new RoundRectangle2D.Double(24, 86, 52, 4, 2, 2));
         Path2D body = new Path2D.Double();
-        body.moveTo(33, 88);
-        body.lineTo(67, 88);
-        body.lineTo(62, 99);
-        body.lineTo(38, 99);
+        body.moveTo(27, 89);
+        body.lineTo(73, 89);
+        body.lineTo(69, 97);
+        body.lineTo(31, 97);
         body.closePath();
         g2.fill(body);
-        g2.fill(new RoundRectangle2D.Double(29, 85, 42, 5, 3, 3));
+        g2.fill(new RoundRectangle2D.Double(33, 96, 8, 3.5, 1, 1));
+        g2.fill(new RoundRectangle2D.Double(59, 96, 8, 3.5, 1, 1));
+    }
+
+    /** Fills a thick curve by stamping circles along it, shrinking from one width to another. */
+    private static void stampAlong(Graphics2D g2, CubicCurve2D curve, double startWidth, double endWidth) {
+        int steps = 60;
+        for (int i = 0; i <= steps; i++) {
+            double t = (double) i / steps;
+            double mt = 1 - t;
+            double px = mt * mt * mt * curve.getX1() + 3 * mt * mt * t * curve.getCtrlX1()
+                    + 3 * mt * t * t * curve.getCtrlX2() + t * t * t * curve.getX2();
+            double py = mt * mt * mt * curve.getY1() + 3 * mt * mt * t * curve.getCtrlY1()
+                    + 3 * mt * t * t * curve.getCtrlY2() + t * t * t * curve.getY2();
+            double radius = (startWidth + (endWidth - startWidth) * t) / 2;
+            g2.fill(new Ellipse2D.Double(px - radius, py - radius, radius * 2, radius * 2));
+        }
     }
 }
