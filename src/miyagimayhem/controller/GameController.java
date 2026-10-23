@@ -49,16 +49,8 @@ public class GameController {
 
     // ---- rosters ----
 
-    public String validateName(String raw, List<String> existing) {
-        return RosterValidator.validateName(raw, existing);
-    }
-
     public String normalizeName(String raw) {
         return RosterValidator.normalize(raw);
-    }
-
-    public String validateRoster(List<String> names) {
-        return RosterValidator.validateRoster(names);
     }
 
     public List<String> getRosterNames() {
