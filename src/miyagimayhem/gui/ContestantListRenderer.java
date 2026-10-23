@@ -26,7 +26,7 @@ class ContestantListRenderer extends DefaultListCellRenderer {
         ContestantStatus status = playback.getStatus(name);
         setText(name + "  -  " + status.getLabel());
         setForeground(colourFor(status));
-        setFont(status == ContestantStatus.WINNER ? UiTheme.BOLD : UiTheme.BODY);
+        setFont(UiTheme.BOLD);
         setBackground(UiTheme.PANEL);
         setBorder(UiTheme.padding(6));
         return this;

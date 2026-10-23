@@ -4,7 +4,7 @@ package miyagimayhem.controller;
  * Where a contestant stands while a game is being shown, as the sidebar displays it.
  */
 public enum ContestantStatus {
-    ACTIVE("In the game"),
+    ACTIVE("In game"),
     IMMUNE("Immune"),
     OUT("Voted out"),
     WINNER("Winner!");
