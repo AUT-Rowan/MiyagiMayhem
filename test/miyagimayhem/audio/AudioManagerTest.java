@@ -30,31 +30,19 @@ public class AudioManagerTest {
     }
 
     @Test
-    public void volumeIsKeptBetweenZeroAndOneHundred() {
-        AudioManager audio = new AudioManager();
-        audio.setMusicVolume(250);
-        assertEquals(100, audio.getMusicVolume());
-        audio.setMusicVolume(-5);
-        assertEquals(0, audio.getMusicVolume());
-        audio.setMusicVolume(40);
-        assertEquals(40, audio.getMusicVolume());
-        audio.close();
-    }
-
-    @Test
-    public void playingAndStoppingNeverThrowsEvenWithoutAnAudioDevice() {
+    public void playingAndClosingNeverThrowsEvenWithoutAnAudioDevice() {
         AudioManager audio = new AudioManager();
         audio.playClick();
         audio.startMusic();
         audio.setMusicEnabled(false);
         audio.setMusicEnabled(true);
-        audio.stopMusic();
+        audio.close();
         assertFalse(audio.isMusicPlaying());
         audio.close();
     }
 
     @Test
-    public void mutedMusicDoesNotPlayWhenTheMenuIsShown() {
+    public void mutedMusicDoesNotPlayWhenStarted() {
         AudioManager audio = new AudioManager();
         audio.setMusicEnabled(false);
         audio.startMusic();

@@ -54,13 +54,15 @@ public class MainFrame extends JFrame implements Navigator {
         historyPanel = new HistoryPanel(controller, this);
         flavorPanel = new FlavorPanel(controller, this);
 
-        deck.add(new MenuPanel(this, audio, this::quit), MENU);
+        deck.add(new MenuPanel(this, this::quit), MENU);
         deck.add(setupPanel, SETUP);
         deck.add(gamePanel, GAME);
         deck.add(historyPanel, HISTORY);
         deck.add(flavorPanel, FLAVOR);
-        add(deck);
+        SoundControls soundControls = new SoundControls(audio);
+        add(new OverlayPane(deck, soundControls));
         ButtonSounds.install(deck, audio);
+        ButtonSounds.install(soundControls, audio);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -78,33 +80,28 @@ public class MainFrame extends JFrame implements Navigator {
     @Override
     public void showMenu() {
         cards.show(deck, MENU);
-        audio.startMusic();
     }
 
     @Override
     public void showSetup() {
-        audio.stopMusic();
         setupPanel.refresh();
         cards.show(deck, SETUP);
     }
 
     @Override
     public void showGame(List<String> contestantNames) {
-        audio.stopMusic();
         cards.show(deck, GAME);
         gamePanel.startGame(contestantNames);
     }
 
     @Override
     public void showHistory() {
-        audio.stopMusic();
         historyPanel.refresh();
         cards.show(deck, HISTORY);
     }
 
     @Override
     public void showFlavor() {
-        audio.stopMusic();
         flavorPanel.refresh();
         cards.show(deck, FLAVOR);
     }
