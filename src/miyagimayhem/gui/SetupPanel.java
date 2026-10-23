@@ -4,45 +4,41 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import miyagimayhem.controller.GameController;
-import miyagimayhem.db.DataAccessException;
+import miyagimayhem.controller.RosterEditor;
 import miyagimayhem.logic.RosterValidator;
 
 /**
- * Lets the player build a roster of 3 to 10 contestants, load or save named
- * rosters, and start the game.
+ * Lets the player build a roster of 3 to 10 contestants and start the game.
+ * The list itself is kept by RosterEditor and the saved rosters side is its
+ * own panel, so this class mostly arranges components and shows messages.
  */
 class SetupPanel extends JPanel {
 
-    private final GameController controller;
     private final Navigator navigator;
+    private final RosterEditor editor = new RosterEditor();
+    private final SavedRostersPanel savedRosters;
 
     private final DefaultListModel<String> members = new DefaultListModel<>();
     private final JList<String> memberList = new JList<>(members);
     private final JTextField nameField = new JTextField();
     private final JLabel feedback = new JLabel(" ");
     private final JLabel counter = UiTheme.label("");
-    private final JComboBox<String> rosterBox = new JComboBox<>();
     private final JButton startButton = new StyledButton("Start Game", true);
     private final JButton removeButton = new StyledButton("Remove", false);
 
     SetupPanel(GameController controller, Navigator navigator) {
-        this.controller = controller;
         this.navigator = navigator;
+        this.savedRosters = new SavedRostersPanel(controller, editor::getNames, this::loadNames, this::setFeedback);
 
         setLayout(new BorderLayout(16, 16));
         setBackground(UiTheme.BACKGROUND);
@@ -56,7 +52,7 @@ class SetupPanel extends JPanel {
 
     /** Called each time the screen is shown. */
     void refresh() {
-        loadRosterNames();
+        savedRosters.refresh();
         nameField.requestFocusInWindow();
     }
 
@@ -64,7 +60,7 @@ class SetupPanel extends JPanel {
         JPanel centre = new JPanel(new GridLayout(1, 2, 20, 0));
         centre.setOpaque(false);
         centre.add(buildMembersColumn());
-        centre.add(buildRostersColumn());
+        centre.add(savedRosters);
         return centre;
     }
 
@@ -101,7 +97,7 @@ class SetupPanel extends JPanel {
         listButtons.add(removeButton);
         JButton clearButton = new StyledButton("Clear all", false);
         clearButton.addActionListener(e -> {
-            members.clear();
+            editor.clear();
             setFeedback(" ", false);
             updateState();
         });
@@ -111,33 +107,6 @@ class SetupPanel extends JPanel {
         column.add(top, BorderLayout.NORTH);
         column.add(new JScrollPane(memberList), BorderLayout.CENTER);
         column.add(listButtons, BorderLayout.SOUTH);
-        return column;
-    }
-
-    private JPanel buildRostersColumn() {
-        JPanel column = new JPanel(new BorderLayout(8, 8));
-        column.setOpaque(false);
-        column.add(UiTheme.label("Saved rosters"), BorderLayout.NORTH);
-
-        JPanel box = new JPanel(new GridLayout(0, 1, 0, 8));
-        box.setOpaque(false);
-        rosterBox.setFont(UiTheme.BODY);
-        box.add(rosterBox);
-
-        JButton load = new StyledButton("Load into list", false);
-        load.addActionListener(e -> loadSelectedRoster());
-        JButton save = new StyledButton("Save current list as...", false);
-        save.addActionListener(e -> saveCurrentRoster());
-        JButton delete = new StyledButton("Delete saved roster", false);
-        delete.addActionListener(e -> deleteSelectedRoster());
-        box.add(load);
-        box.add(save);
-        box.add(delete);
-
-        JPanel holder = new JPanel(new BorderLayout());
-        holder.setOpaque(false);
-        holder.add(box, BorderLayout.NORTH);
-        column.add(holder, BorderLayout.CENTER);
         return column;
     }
 
@@ -162,112 +131,36 @@ class SetupPanel extends JPanel {
         list.setPreferredSize(new Dimension(200, 200));
     }
 
-    private List<String> currentNames() {
-        return Collections.list(members.elements());
-    }
-
     private void addName() {
-        String error = controller.validateName(nameField.getText(), currentNames());
+        String error = editor.add(nameField.getText());
         if (error != null) {
             setFeedback(error, true);
             return;
         }
-        members.addElement(controller.normalizeName(nameField.getText()));
         nameField.setText("");
         setFeedback(" ", false);
         updateState();
     }
 
     private void removeSelected() {
-        int index = memberList.getSelectedIndex();
-        if (index >= 0) {
-            members.remove(index);
-            setFeedback(" ", false);
-            updateState();
-        }
+        editor.removeAt(memberList.getSelectedIndex());
+        setFeedback(" ", false);
+        updateState();
     }
 
-    private void loadRosterNames() {
-        try {
-            DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-            for (String name : controller.getRosterNames()) {
-                model.addElement(name);
-            }
-            rosterBox.setModel(model);
-        } catch (DataAccessException e) {
-            UiTheme.showDatabaseError(this, e);
-        }
-    }
-
-    private void loadSelectedRoster() {
-        String rosterName = (String) rosterBox.getSelectedItem();
-        if (rosterName == null) {
-            setFeedback("There are no saved rosters yet.", true);
-            return;
-        }
-        try {
-            members.clear();
-            for (String name : controller.loadRoster(rosterName)) {
-                members.addElement(name);
-            }
-            setFeedback(" ", false);
-            updateState();
-        } catch (DataAccessException e) {
-            UiTheme.showDatabaseError(this, e);
-        }
-    }
-
-    private void saveCurrentRoster() {
-        String error = controller.validateRoster(currentNames());
-        if (error != null) {
-            setFeedback(error, true);
-            return;
-        }
-        String rosterName = JOptionPane.showInputDialog(this, "Name for this roster:", "Save roster",
-                JOptionPane.PLAIN_MESSAGE);
-        if (rosterName == null) {
-            return;
-        }
-        try {
-            error = controller.saveRoster(rosterName, currentNames());
-            if (error != null) {
-                setFeedback(error, true);
-                return;
-            }
-            loadRosterNames();
-            rosterBox.setSelectedItem(controller.normalizeName(rosterName));
-            setFeedback("Roster saved.", false);
-        } catch (DataAccessException e) {
-            UiTheme.showDatabaseError(this, e);
-        }
-    }
-
-    private void deleteSelectedRoster() {
-        String rosterName = (String) rosterBox.getSelectedItem();
-        if (rosterName == null) {
-            return;
-        }
-        int answer = JOptionPane.showConfirmDialog(this, "Delete the saved roster '" + rosterName + "'?",
-                "Delete roster", JOptionPane.YES_NO_OPTION);
-        if (answer == JOptionPane.YES_OPTION) {
-            try {
-                controller.deleteRoster(rosterName);
-                loadRosterNames();
-                setFeedback("Roster deleted.", false);
-            } catch (DataAccessException e) {
-                UiTheme.showDatabaseError(this, e);
-            }
-        }
+    private void loadNames(List<String> names) {
+        editor.replaceWith(names);
+        setFeedback(" ", false);
+        updateState();
     }
 
     private void startGame() {
-        List<String> names = new ArrayList<>(currentNames());
-        String error = controller.validateRoster(names);
+        String error = editor.checkReady();
         if (error != null) {
             setFeedback(error, true);
             return;
         }
-        navigator.showGame(names);
+        navigator.showGame(editor.getNames());
     }
 
     private void setFeedback(String message, boolean isError) {
@@ -275,11 +168,15 @@ class SetupPanel extends JPanel {
         feedback.setForeground(isError ? UiTheme.DANGER : UiTheme.OK);
     }
 
+    /** Redraws the list, the counter and the buttons from the editor's state. */
     private void updateState() {
-        int count = members.size();
-        counter.setText(count + " / " + RosterValidator.MAX_CONTESTANTS
+        members.clear();
+        for (String name : editor.getNames()) {
+            members.addElement(name);
+        }
+        counter.setText(editor.size() + " / " + RosterValidator.MAX_CONTESTANTS
                 + " (min " + RosterValidator.MIN_CONTESTANTS + ")");
-        startButton.setEnabled(controller.validateRoster(currentNames()) == null);
+        startButton.setEnabled(editor.isReady());
         removeButton.setEnabled(memberList.getSelectedIndex() >= 0);
     }
 }
