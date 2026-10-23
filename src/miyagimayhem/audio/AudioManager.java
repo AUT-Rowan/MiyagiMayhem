@@ -20,8 +20,8 @@ public class AudioManager {
 
     private static final String CLICK_FILE = "click.wav";
     private static final String MUSIC_FILE = "menu_music.wav";
-    /** The music file is quite loud, so it is played 6 dB (half as loud) quieter. */
-    private static final float MUSIC_GAIN_DB = -6f;
+    /** The music file is loud, so it is played about 8 dB quieter (roughly 40% of full volume). */
+    private static final float MUSIC_GAIN_DB = -7.9f;
 
     private final Clip clickClip;
     private final Clip musicClip;
