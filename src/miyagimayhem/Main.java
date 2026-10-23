@@ -2,7 +2,6 @@ package miyagimayhem;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import miyagimayhem.controller.GameController;
 import miyagimayhem.db.DataAccessException;
 import miyagimayhem.gui.MainFrame;
@@ -19,7 +18,7 @@ public class Main {
 
     private static void launch() {
         try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            MainFrame.installLookAndFeel();
             GameController controller = GameController.createDefault();
             new MainFrame(controller).setVisible(true);
         } catch (DataAccessException e) {

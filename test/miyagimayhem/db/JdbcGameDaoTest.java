@@ -80,4 +80,15 @@ public class JdbcGameDaoTest extends DatabaseTestCase {
         assertTrue(dao.findTranscript(id).isEmpty());
         assertTrue(dao.findWinCounts().isEmpty());
     }
+
+    @Test
+    public void deleteRemovesOnlyThatGame() {
+        int keep = dao.save("Ann", "Ann,Bob,Cy", 1, sampleTranscript());
+        int remove = dao.save("Bob", "Ann,Bob,Cy", 1, sampleTranscript());
+        dao.delete(remove);
+        assertEquals(1, dao.findAll().size());
+        assertEquals(keep, dao.findAll().get(0).getId());
+        assertTrue(dao.findTranscript(remove).isEmpty());
+        assertEquals(3, dao.findTranscript(keep).size());
+    }
 }

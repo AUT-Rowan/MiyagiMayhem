@@ -133,6 +133,17 @@ public class JdbcGameDao implements GameDao {
     }
 
     @Override
+    public void delete(int gameId) {
+        try (PreparedStatement statement =
+                database.getConnection().prepareStatement("DELETE FROM GAME WHERE ID = ?")) {
+            statement.setInt(1, gameId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not delete that game.", e);
+        }
+    }
+
+    @Override
     public void deleteAll() {
         try (Statement statement = database.getConnection().createStatement()) {
             // Transcripts are removed automatically by ON DELETE CASCADE.

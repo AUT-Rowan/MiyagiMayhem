@@ -1,6 +1,7 @@
 package miyagimayhem.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -10,6 +11,7 @@ import java.util.List;
 import miyagimayhem.db.DatabaseTestCase;
 import miyagimayhem.model.GameSession;
 import miyagimayhem.model.NarratedLine;
+import miyagimayhem.model.PlayerStats;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +30,15 @@ public class GameControllerTest extends DatabaseTestCase {
         int id = controller.saveGame(session);
         assertEquals(1, controller.getHistory().size());
         assertEquals(session.getLines().size(), controller.getTranscript(id).size());
-        assertEquals(Integer.valueOf(1), controller.getLeaderboard().get(session.getWinnerName()));
+        PlayerStats winner = null;
+        for (PlayerStats stats : controller.getLeaderboard()) {
+            if (stats.getName().equals(session.getWinnerName())) {
+                winner = stats;
+            }
+        }
+        assertNotNull(winner);
+        assertEquals(1, winner.getWins());
+        assertEquals(1, winner.getGamesPlayed());
     }
 
     @Test
@@ -71,5 +81,32 @@ public class GameControllerTest extends DatabaseTestCase {
         controller.clearHistory();
         assertTrue(controller.getHistory().isEmpty());
         assertTrue(controller.getLeaderboard().isEmpty());
+    }
+
+    @Test
+    public void leaderboardCountsGamesPlayedAndWinsForEveryone() {
+        for (int i = 0; i < 3; i++) {
+            controller.saveGame(controller.play(Arrays.asList("Ann", "Bob", "Cy")));
+        }
+        List<PlayerStats> leaderboard = controller.getLeaderboard();
+        assertEquals(3, leaderboard.size());
+        int totalWins = 0;
+        for (PlayerStats stats : leaderboard) {
+            assertEquals(3, stats.getGamesPlayed());
+            totalWins += stats.getWins();
+        }
+        assertEquals(3, totalWins);
+        assertTrue(leaderboard.get(0).getWins() >= leaderboard.get(2).getWins());
+    }
+
+    @Test
+    public void deletingOneGameLeavesTheOthers() {
+        int first = controller.saveGame(controller.play(Arrays.asList("Ann", "Bob", "Cy")));
+        int second = controller.saveGame(controller.play(Arrays.asList("Ann", "Bob", "Cy")));
+        controller.deleteGame(first);
+        assertEquals(1, controller.getHistory().size());
+        assertEquals(second, controller.getHistory().get(0).getId());
+        assertTrue(controller.getTranscript(first).isEmpty());
+        assertFalse(controller.getTranscript(second).isEmpty());
     }
 }

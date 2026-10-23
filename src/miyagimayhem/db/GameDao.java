@@ -25,6 +25,9 @@ public interface GameDao {
     /** Winner name to number of wins, most wins first. */
     Map<String, Integer> findWinCounts();
 
+    /** Deletes one saved game and its transcript. */
+    void delete(int gameId);
+
     /** Deletes every saved game and transcript. */
     void deleteAll();
 }

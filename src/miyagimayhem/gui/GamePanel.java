@@ -4,9 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -16,38 +14,41 @@ import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.Timer;
 import miyagimayhem.controller.GameController;
+import miyagimayhem.controller.GamePlayback;
 import miyagimayhem.db.DataAccessException;
 import miyagimayhem.model.GameSession;
-import miyagimayhem.model.LineStyle;
 import miyagimayhem.model.NarratedLine;
 
 /**
  * Plays one game. The whole game is worked out first, then revealed a few
  * lines at a time: by pressing Next, or automatically at a chosen speed.
  * When the last line is shown the game is saved to the database.
+ *
+ * What has been revealed and who is out is tracked by GamePlayback, so this
+ * class only has to draw it.
  */
 class GamePanel extends JPanel {
 
-    private static final int FASTEST_DELAY_MS = 300;
-    private static final int SLOWEST_DELAY_MS = 2500;
+    /** Auto-play delay for each slider position, 1 (slowest) to 7 (fastest). */
+    private static final int[] DELAY_MS = {2800, 2000, 1500, 1100, 750, 450, 250};
+    private static final int DEFAULT_SPEED = 4;
 
     private final GameController controller;
     private final Navigator navigator;
 
     private final TranscriptView transcript = new TranscriptView();
     private final DefaultListModel<String> sidebarModel = new DefaultListModel<>();
-    private final Map<String, ContestantStatus> statuses = new HashMap<>();
+    private final JList<String> sidebar = new JList<>(sidebarModel);
     private final JLabel statusLabel = UiTheme.label(" ");
     private final JButton nextButton = new StyledButton("Next", true);
     private final JButton autoButton = new StyledButton("Auto-play", false);
     private final JButton skipButton = new StyledButton("Skip to end", false);
     private final JButton againButton = new StyledButton("Play again", true);
-    private final JSlider speedSlider = new JSlider(0, 100, 50);
+    private final JSlider speedSlider = new JSlider(1, DELAY_MS.length, DEFAULT_SPEED);
     private final Timer autoTimer;
 
-    private GameSession session;
+    private GamePlayback playback;
     private List<String> names = new ArrayList<>();
-    private int nextLine;
     private boolean saved;
 
     GamePanel(GameController controller, Navigator navigator) {
@@ -58,7 +59,7 @@ class GamePanel extends JPanel {
         setBackground(UiTheme.BACKGROUND);
         setBorder(UiTheme.padding(20));
 
-        autoTimer = new Timer(delayFromSlider(), e -> revealNext());
+        autoTimer = new Timer(delayForSpeed(), e -> revealNext());
         autoTimer.setRepeats(true);
 
         add(buildTop(), BorderLayout.NORTH);
@@ -69,8 +70,9 @@ class GamePanel extends JPanel {
 
     /** Works out a brand new game for these names and shows its first lines. */
     void startGame(List<String> contestantNames) {
-        stopAutoPlay();
+        autoTimer.stop();
         names = new ArrayList<>(contestantNames);
+        GameSession session;
         try {
             session = controller.play(names);
         } catch (DataAccessException e) {
@@ -78,17 +80,18 @@ class GamePanel extends JPanel {
             navigator.showMenu();
             return;
         }
-        nextLine = 0;
+        playback = new GamePlayback(session);
         saved = false;
+
+        ContestantColors colours = new ContestantColors(playback.getContestantNames());
+        transcript.setColours(colours);
         transcript.clear();
-        statuses.clear();
+        sidebar.setCellRenderer(new ContestantListRenderer(playback, colours));
         sidebarModel.clear();
-        for (String name : names) {
-            statuses.put(name, ContestantStatus.ACTIVE);
+        for (String name : playback.getContestantNames()) {
             sidebarModel.addElement(name);
         }
         statusLabel.setText("Press Next to follow the show.");
-        updateButtons();
         revealNext();
     }
 
@@ -102,16 +105,14 @@ class GamePanel extends JPanel {
     }
 
     private JPanel buildSidebar() {
-        JList<String> list = new JList<>(sidebarModel);
-        list.setCellRenderer(new ContestantListRenderer(statuses));
-        list.setBackground(UiTheme.PANEL);
-        list.setFocusable(false);
+        sidebar.setBackground(UiTheme.PANEL);
+        sidebar.setFocusable(false);
 
         JPanel side = new JPanel(new BorderLayout(0, 6));
         side.setOpaque(false);
-        side.setPreferredSize(new Dimension(230, 0));
+        side.setPreferredSize(new Dimension(250, 0));
         side.add(UiTheme.label("Contestants"), BorderLayout.NORTH);
-        side.add(list, BorderLayout.CENTER);
+        side.add(sidebar, BorderLayout.CENTER);
         return side;
     }
 
@@ -128,17 +129,21 @@ class GamePanel extends JPanel {
         againButton.addActionListener(e -> startGame(names));
 
         speedSlider.setOpaque(false);
-        speedSlider.setPreferredSize(new Dimension(130, 30));
-        speedSlider.setToolTipText("Auto-play speed");
-        speedSlider.addChangeListener(e -> autoTimer.setDelay(delayFromSlider()));
+        speedSlider.setForeground(UiTheme.MUTED);
+        speedSlider.setMajorTickSpacing(1);
+        speedSlider.setPaintTicks(true);
+        speedSlider.setSnapToTicks(true);
+        speedSlider.setPreferredSize(new Dimension(150, 36));
+        speedSlider.setToolTipText("Auto-play speed: 1 is slowest, " + DELAY_MS.length + " is fastest");
+        speedSlider.addChangeListener(e -> autoTimer.setDelay(delayForSpeed()));
 
         JPanel centre = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         centre.setOpaque(false);
         centre.add(nextButton);
         centre.add(autoButton);
-        centre.add(UiTheme.label("Fast"));
-        centre.add(speedSlider);
         centre.add(UiTheme.label("Slow"));
+        centre.add(speedSlider);
+        centre.add(UiTheme.label("Fast"));
         centre.add(skipButton);
         centre.add(againButton);
 
@@ -147,91 +152,31 @@ class GamePanel extends JPanel {
         return controls;
     }
 
-    private int delayFromSlider() {
-        // Left end of the slider (0) is the shortest delay, right end (100) the longest.
-        int value = speedSlider.getValue();
-        return FASTEST_DELAY_MS + (SLOWEST_DELAY_MS - FASTEST_DELAY_MS) * value / 100;
+    private int delayForSpeed() {
+        return DELAY_MS[speedSlider.getValue() - 1];
     }
 
-    private boolean isFinished() {
-        return session == null || nextLine >= session.getLines().size();
-    }
-
-    /** Shows lines up to and including the next one that waits for the viewer. */
     private void revealNext() {
-        if (isFinished()) {
-            return;
+        if (!playback.isFinished()) {
+            show(playback.revealNext());
         }
-        List<NarratedLine> lines = session.getLines();
-        boolean stop = false;
-        while (!stop && nextLine < lines.size()) {
-            NarratedLine line = lines.get(nextLine++);
-            show(line);
-            stop = line.isPause();
-        }
-        if (isFinished()) {
-            finishGame();
-        }
-        updateButtons();
     }
 
     private void skipToEnd() {
-        stopAutoPlay();
-        while (!isFinished()) {
-            show(session.getLines().get(nextLine++));
+        autoTimer.stop();
+        show(playback.revealAll());
+    }
+
+    private void show(List<NarratedLine> lines) {
+        for (NarratedLine line : lines) {
+            transcript.append(line);
         }
-        finishGame();
+        if (playback.isFinished()) {
+            autoTimer.stop();
+            saveOnce();
+        }
         updateButtons();
-    }
-
-    private void show(NarratedLine line) {
-        transcript.append(line);
-        if (line.getStyle() == LineStyle.ROUND) {
-            clearImmunity();
-        }
-        applyTag(line);
-        repaint();
-    }
-
-    private void applyTag(NarratedLine line) {
-        String subject = line.getSubject();
-        if (subject == null || !statuses.containsKey(subject)) {
-            return;
-        }
-        switch (line.getTag()) {
-            case ELIMINATED:
-                statuses.put(subject, ContestantStatus.OUT);
-                break;
-            case IMMUNITY_GRANTED:
-                if (statuses.get(subject) != ContestantStatus.OUT) {
-                    statuses.put(subject, ContestantStatus.IMMUNE);
-                }
-                break;
-            case IMMUNITY_CLEARED:
-                if (statuses.get(subject) == ContestantStatus.IMMUNE) {
-                    statuses.put(subject, ContestantStatus.ACTIVE);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void clearImmunity() {
-        for (Map.Entry<String, ContestantStatus> entry : statuses.entrySet()) {
-            if (entry.getValue() == ContestantStatus.IMMUNE) {
-                entry.setValue(ContestantStatus.ACTIVE);
-            }
-        }
-    }
-
-    private void finishGame() {
-        stopAutoPlay();
-        String winner = session.getWinnerName();
-        if (statuses.containsKey(winner)) {
-            statuses.put(winner, ContestantStatus.WINNER);
-        }
-        saveOnce();
+        sidebar.repaint();
     }
 
     private void saveOnce() {
@@ -239,7 +184,7 @@ class GamePanel extends JPanel {
             return;
         }
         try {
-            controller.saveGame(session);
+            controller.saveGame(playback.getSession());
             saved = true;
             statusLabel.setText("Game over - saved to your history.");
         } catch (DataAccessException e) {
@@ -250,19 +195,15 @@ class GamePanel extends JPanel {
 
     private void toggleAutoPlay() {
         if (autoTimer.isRunning()) {
-            stopAutoPlay();
+            autoTimer.stop();
         } else {
             autoTimer.start();
         }
         updateButtons();
     }
 
-    private void stopAutoPlay() {
-        autoTimer.stop();
-    }
-
     private void updateButtons() {
-        boolean finished = isFinished();
+        boolean finished = playback.isFinished();
         nextButton.setEnabled(!finished);
         autoButton.setEnabled(!finished);
         skipButton.setEnabled(!finished);
@@ -271,8 +212,8 @@ class GamePanel extends JPanel {
     }
 
     private void backToMenu() {
-        if (!isFinished()) {
-            stopAutoPlay();
+        autoTimer.stop();
+        if (playback != null && !playback.isFinished()) {
             int answer = JOptionPane.showConfirmDialog(this,
                     "Leave this game? It won't be saved because it isn't finished.",
                     "Leave game", JOptionPane.YES_NO_OPTION);
@@ -281,7 +222,6 @@ class GamePanel extends JPanel {
                 return;
             }
         }
-        stopAutoPlay();
         navigator.showMenu();
     }
 }
